@@ -25,3 +25,4 @@ dist-ssr
 
 python/*.jsonl
 python/model.ipynb
+python/Metadata_Sample.csv
