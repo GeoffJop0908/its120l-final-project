@@ -2,38 +2,78 @@ import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
+import ChatBot from 'react-chatbotify';
+
+const MyChatBot = () => {
+  let apiKey =
+    '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';
+  let modelType = 'gpt-3.5-turbo';
+  let hasError = false;
+
+  // example openai conversation
+  // you can replace with other LLMs such as Google Gemini
+  const call_openai = async (params) => {
+    try {
+      const openai = new OpenAI({
+        apiKey: apiKey,
+        dangerouslyAllowBrowser: true, // required for testing on browser side, not recommended
+      });
+
+      // for streaming responses in parts (real-time), refer to real-time stream example
+      const chatCompletion = await openai.chat.completions.create({
+        // conversation history is not shown in this example as message length is kept to 1
+        messages: [{ role: 'user', content: params.userInput }],
+        model: modelType,
+      });
+
+      await params.injectMessage(chatCompletion.choices[0].message.content);
+    } catch (error) {
+      await params.injectMessage(
+        'Unable to load model, is your API Key valid?'
+      );
+      hasError = true;
+    }
+  };
+  const flow = {
+    start: {
+      message: 'Enter your OpenAI api key and start asking away!',
+      path: 'api_key',
+      isSensitive: true,
+    },
+    api_key: {
+      message: (params) => {
+        apiKey = params.userInput.trim();
+        return 'Ask me anything!';
+      },
+      path: 'loop',
+    },
+    loop: {
+      message: async (params) => {
+        await call_openai(params);
+      },
+      path: () => {
+        if (hasError) {
+          return 'start';
+        }
+        return 'loop';
+      },
+    },
+  };
+  return (
+    <ChatBot
+      settings={{
+        general: { embedded: true },
+        chatHistory: { storageKey: 'example_llm_conversation' },
+      }}
+      flow={flow}
+    />
+  );
+};
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <div className="bg-neutral-800 h-[100vh] flex items-center justify-center text-white flex-col">
-      <div className="flex gap-1">
-        <a href="https://vite.dev" target="_blank" className="size-32">
-          <img src={viteLogo} className="size-full" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" className="size-32">
-          <img src={reactLogo} className="size-full" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          className="bg-zinc-900 text-white rounded-lg p-2 m-0"
-        >
-          count is {count}
-        </button>
-      </div>
-      <div>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <p className="pt-4 text-2xl">Project Initialized by Geoff</p>
+      <MyChatBot />
     </div>
   );
 }

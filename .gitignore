@@ -22,7 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-python/*.jsonl
-python/model.ipynb
-python/Metadata_Sample.csv
