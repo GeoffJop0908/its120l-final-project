@@ -1,6 +1,7 @@
 import '../App.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const [data, setData] = useState([]);
@@ -39,6 +40,9 @@ export default function Home() {
           </tbody>
         </table>
       </div>
+      <button className="btn btn-primary">
+        <Link to="/add">Add New User</Link>
+      </button>
     </div>
   );
 }
