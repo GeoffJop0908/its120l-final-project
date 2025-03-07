@@ -28,9 +28,12 @@ class User(db.Model):
         self.username = username
         self.email = email
 
-@app.route("/members")
-def members():
-    return {"members": ["Member1", "Member2", "Member3", "Member4"]}
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'username', 'email')
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
 
 @app.route("/add", methods=['POST'])
 def add():
@@ -40,8 +43,39 @@ def add():
     users = User(username, email)
     db.session.add(users)
     db.session.commit()
+    
+    return user_schema.jsonify(users)
 
-    return jsonify({"success": "Success Post!"})
+@app.route("/list", methods=['GET'])
+def get():
+    all_users = User.query.all()
+    results = users_schema.dump(all_users)
+    return jsonify(results)
+
+@app.route("/update/<id>", methods=['PUT'])
+def update(id):
+    user = User.query.get(id)
+
+    username = request.json["username"]
+    email = request.json["email"]
+
+    user.username = username
+    user.email = email
+
+    db.session.commit()
+    return user_schema.jsonify(user)
+
+@app.route("/delete/<id>", methods=['DELETE'])
+def delete(id):
+    user = User.query.get(id)
+    db.session.delete(user)
+    db.session.commit()
+    return user_schema.jsonify(user)
+
+@app.route("/details/<id>", methods=['GET'])
+def details(id):
+    user = User.query.get(id)
+    return user_schema.jsonify(user)
 
 if __name__ == "__main__":
     app.run(debug=True)
