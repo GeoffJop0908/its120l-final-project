@@ -1,48 +1,17 @@
 import '../App.css';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    getUsers();
-  }, []);
-
-  const getUsers = () => {
-    axios.get('http://localhost:5000/list').then((res) => {
-      console.log(res.data);
-      setData(res.data);
-    });
-  };
-
   return (
-    <div className="bg-neutral-800 h-[100vh] flex items-center justify-center text-white flex-col">
-      <div className="overflow-x-auto">
-        <table className="table">
-          {/* head */}
-          <thead>
-            <tr>
-              <th></th>
-              <th>Username</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((user, key) => (
-              <tr key={key}>
-                <td>{user.id}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <button className="btn btn-primary">
-        <Link to="/add">Add New User</Link>
-      </button>
-    </div>
+    <>
+      <motion.h1
+        className="font-bold text-4xl"
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ ease: 'easeInOut' }}
+      >
+        What can I recommend for you today?
+      </motion.h1>
+    </>
   );
 }

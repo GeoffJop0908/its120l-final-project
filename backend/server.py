@@ -6,7 +6,8 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from flask_marshmallow import Marshmallow
 import pickle
-from sqlalchemy.dialects.mysql import LONGTEXT
+from sqlalchemy.dialects.mysql import LONGTEXT, JSON
+import ollama
 
 # Load Models
 
@@ -90,6 +91,7 @@ class PetProducts(db.Model):
     features = db.Column(LONGTEXT)
     description = db.Column(LONGTEXT)
     details = db.Column(LONGTEXT)
+    images = db.Column(JSON)
 
 class ProdSchema(ma.Schema):
     class Meta:
@@ -140,7 +142,7 @@ prods_schema = ProdSchema(many=True)
 #     user = User.query.get(id)
 #     return user_schema.jsonify(user)
 
-@app.route("/recommendations", methods=['GET'])
+@app.route("/recommendations", methods=['POST'])
 def recommend():
     user_query = request.json["query"]
     
@@ -162,6 +164,35 @@ def recommend():
 
     return jsonify(result)
 
+@app.route("/chat", methods=['POST'])
+def chat():
+    client = ollama.Client()
+
+    model = "llama3.2:3b"
+    prompt = request.json["prompt"]
+
+    response = client.generate(model=model, prompt=prompt)
+
+    return response.response
+
+@app.route("/images", methods=['POST'])
+def images():
+    product_id = request.json["id"]
+
+    if not product_id:
+        return jsonify({"error": "ID parameter is missing"}), 400
+
+    # Retrieve the product by 'id'
+    product = PetProducts.query.get(product_id)
+    
+    # Check if the product exists
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
+    # Convert the product details to JSON
+    result = product.images
+
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(debug=True)

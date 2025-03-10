@@ -2,18 +2,26 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import Home from './pages/Home.jsx';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Chat from './pages/Chat.jsx';
 import CreateUser from './pages/CreateUser.jsx';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import RootLayout from '../components/RootLayout.jsx';
+import Recommendations from './pages/Recommendations.jsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'recommendations', element: <Recommendations /> },
+    ],
   },
   {
     path: '/add',
     element: <CreateUser />,
   },
+  { path: '/chat', element: <Chat /> },
 ]);
 
 createRoot(document.getElementById('root')).render(
