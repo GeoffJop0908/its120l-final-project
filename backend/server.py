@@ -190,7 +190,16 @@ def images():
         return jsonify({"error": "Product not found"}), 404
 
     # Convert the product details to JSON
-    result = product.images
+    result = {"id": product.id,
+    "title": product.title,
+    "average_rating": product.average_rating,
+    "rating_number": product.rating_number,
+    "store": product.store,
+    "parent_asin": product.parent_asin,
+    "features": product.features,
+    "description": product.description,
+    "details": product.details,
+    "images": product.images}
 
     return jsonify(result)
 

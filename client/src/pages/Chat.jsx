@@ -47,27 +47,6 @@ export default function Chat() {
           ))}
         </div>
       </div>
-      <form className="flex gap-5">
-        <input
-          type="text"
-          placeholder="Type here"
-          className="input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)} // Update state on input
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSendMessage();
-            }
-          }}
-        />
-        <button
-          type="submit"
-          className="btn btn-success"
-          onClick={handleSendMessage}
-        >
-          Send
-        </button>
-      </form>
     </div>
   );
 }
