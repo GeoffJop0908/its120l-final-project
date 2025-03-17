@@ -9,7 +9,47 @@ import pickle
 from sqlalchemy.dialects.mysql import LONGTEXT, JSON
 import ollama
 
-# Load Models
+# from langchain_community.llms import Ollama
+# from flask import Flask, render_template, request
+# from langchain_community.vectorstores import FAISS
+# from langchain.memory import ConversationBufferMemory
+# from langchain.chains import ConversationalRetrievalChain
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+
+# # Chatbot RAG Stuff
+
+# loader = DirectoryLoader("./data/", glob="*.pdf", loader_cls=PyPDFLoader)
+# documents = loader.load()
+
+# # Split the documents into chunks
+# text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+# text_chunks = text_splitter.split_documents(documents)
+
+# # Creating the Embeddings and Vector Store
+# embeddings = HuggingFaceEmbeddings(
+#     model_name="sentence-transformers/all-MiniLM-L6-v2",
+#     model_kwargs={"device": "cuda:0"},
+# )
+
+# vector_store = FAISS.from_documents(text_chunks, embeddings)
+
+# # Load the model
+# llm = Ollama(model="llama3.2:3b")
+
+# # load the memory
+# memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+# # create the chain
+# chain = ConversationalRetrievalChain.from_llm(
+#     llm=llm,
+#     chain_type="stuff",
+#     retriever=vector_store.as_retriever(search_kwargs={"k": 2}),
+#     memory=memory,
+# )
+
+# Load Models for Recommendation System
 
 with open("models/tfidf_vectorizer.pkl", "rb") as f:
     tfidf = pickle.load(f)
@@ -17,7 +57,7 @@ with open("models/tfidf_vectorizer.pkl", "rb") as f:
 with open("models/tfidf_matrix.pkl", "rb") as f:
     tfidf_matrix = pickle.load(f)
 
-# Function Definitions
+# Function Definitions for Recommendation System
 
 import re
 import nltk
@@ -44,7 +84,7 @@ lemmatizer = WordNetLemmatizer()
 def lemmatize_text(text):
     return ' '.join([lemmatizer.lemmatize(word) for word in text.split()])
 
-def recommend_products(user_query, tfidf_matrix, top_n=10):
+def recommend_products(user_query, tfidf_matrix, top_n=50):
     # Transform the user query using the same TF-IDF vectorizer
     user_tfidf = tfidf.transform([user_query])
     
@@ -100,48 +140,6 @@ class ProdSchema(ma.Schema):
 prod_schema = ProdSchema()
 prods_schema = ProdSchema(many=True)
 
-# @app.route("/add", methods=['POST'])
-# def add():
-#     username = request.json["username"]
-#     email = request.json["email"]
-
-#     users = User(username, email)
-#     db.session.add(users)
-#     db.session.commit()
-    
-#     return user_schema.jsonify(users)
-
-# @app.route("/list", methods=['GET'])
-# def get():
-#     all_users = User.query.all()
-#     results = users_schema.dump(all_users)
-#     return jsonify(results)
-
-# @app.route("/update/<id>", methods=['PUT'])
-# def update(id):
-#     user = User.query.get(id)
-
-#     username = request.json["username"]
-#     email = request.json["email"]
-
-#     user.username = username
-#     user.email = email
-
-#     db.session.commit()
-#     return user_schema.jsonify(user)
-
-# @app.route("/delete/<id>", methods=['DELETE'])
-# def delete(id):
-#     user = User.query.get(id)
-#     db.session.delete(user)
-#     db.session.commit()
-#     return user_schema.jsonify(user)
-
-# @app.route("/details/<id>", methods=['GET'])
-# def details(id):
-#     user = User.query.get(id)
-#     return user_schema.jsonify(user)
-
 @app.route("/recommendations", methods=['POST'])
 def recommend():
     user_query = request.json["query"]
@@ -158,7 +156,16 @@ def recommend():
 
     # Convert results to JSON
     result = [
-        {"id": product.id, "name": product.title, "description": product.description}
+        {"id": product.id,
+    "title": product.title,
+    "average_rating": product.average_rating,
+    "rating_number": product.rating_number,
+    "store": product.store,
+    "parent_asin": product.parent_asin,
+    "features": product.features,
+    "description": product.description,
+    "details": product.details,
+    "images": product.images}
         for product in recommended_products
     ]
 
@@ -174,6 +181,10 @@ def chat():
     response = client.generate(model=model, prompt=prompt)
 
     return response.response
+
+    # user_input = request.json["prompt"]
+    # result = chain({"question": user_input, "chat_history": []})
+    # return result["answer"]
 
 @app.route("/images", methods=['POST'])
 def images():

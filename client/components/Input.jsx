@@ -13,6 +13,10 @@ export default function Input() {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
   const addMessage = useChatStore((state) => state.addMessage);
+  const setIsLoading = useChatStore((state) => state.setIsLoading);
+  const setIsRecommsLoading = useRecommendationStore(
+    (state) => state.setIsLoading
+  );
 
   const setRecommendations = useRecommendationStore(
     (state) => state.setRecommendation
@@ -23,17 +27,24 @@ export default function Input() {
     if (!query.trim()) return; // Prevent empty search
 
     if (currentMode == 'recommend') {
+      document
+        .getElementById('firstCard')
+        ?.scrollIntoView({ behavior: 'smooth' });
+      setIsRecommsLoading(true);
+
       axios
         .post('http://localhost:5000/recommendations', { query: query })
         .then((res) => {
           console.log(res.data);
           setRecommendations(res.data);
+          setIsRecommsLoading(false);
         })
         .catch((error) => {
           console.error('Error fetching recommendations:', error);
         });
       navigate('/recommendations');
     } else {
+      setIsLoading(true);
       addMessage({ content: query, user: 'Human' });
 
       axios
@@ -41,6 +52,7 @@ export default function Input() {
         .then((res) => {
           console.log(res.data);
           addMessage({ content: res.data, user: 'AI' });
+          setIsLoading(false);
         })
         .catch((error) => {
           console.error('Error fetching recommendations:', error);

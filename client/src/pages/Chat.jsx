@@ -3,35 +3,13 @@ import axios from 'axios';
 import useChatStore from '../store/chatStore';
 
 export default function Chat() {
-  const [input, setInput] = useState('');
+  const isLoading = useChatStore((state) => state.isLoading);
   const messages = useChatStore((state) => state.messages);
-  const addMessage = useChatStore((state) => state.addMessage);
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (input.trim()) {
-      addMessage({ content: input, user: 'Human' });
-
-      axios
-        .post('http://localhost:5000/chat', { prompt: input })
-        .then((res) => {
-          console.log(res.data);
-          addMessage({ content: res.data, user: 'AI' });
-        })
-        .catch((error) => {
-          console.error('Error fetching recommendations:', error);
-        });
-
-      setInput('');
-    }
-  };
 
   return (
-    <div className="bg-neutral-800 h-[100vh] flex items-center justify-center text-white gap-5 flex-col">
-      <div className="overflow-auto h-[80%]">
-        <ul className="list bg-base-100 rounded-box shadow-md w-80">
-          <li className="p-4 pb-2 text-xs opacity-60 tracking-wide">Chat</li>
-        </ul>
+    <div className="h-4/5 w-4/5 flex items-center justify-center text-white gap-5 flex-col p-10">
+      <h1 className="self-start text-2xl font-extrabold">Chat</h1>
+      <div className="overflow-auto h-full w-full flex flex-col">
         <div className="bg-none">
           {messages.map((message, i) => (
             <div
@@ -45,6 +23,14 @@ export default function Chat() {
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="chat chat-start">
+              <div className="chat-header text-white">
+                The AI is thinking...
+              </div>
+              <div className="chat-bubble chat-bubble-info animate-pulse"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>
